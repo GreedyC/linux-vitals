@@ -153,18 +153,24 @@
         append: false
         create_home: true
 
-    - name: Write a system journal entry for the access regression
-      ansible.builtin.command:
-        argv:
-          - logger
-          - --priority
-          - user.err
-          - linux-vitals journal access regression marker
-      changed_when: true
-
-    - name: Flush the journal entry before the unprivileged scan
+    - name: Flush the system journal before the unprivileged scan
       ansible.builtin.command:
         argv:
           - journalctl
           - --sync
       changed_when: false
+
+    - name: Confirm the system journal is readable before testing denied access
+      ansible.builtin.command:
+        argv:
+          - journalctl
+          - --system
+          - --no-pager
+          - --lines=1
+      environment:
+        LC_ALL: C
+      register: journal_sample
+      changed_when: false
+      failed_when: >-
+        journal_sample.rc != 0 or journal_sample.stdout | trim == ''
+        or '-- No entries --' in journal_sample.stdout
