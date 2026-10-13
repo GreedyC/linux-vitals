@@ -146,6 +146,13 @@
         path: "{{ flaky_marker }}"
         state: absent
 
+    - name: Start the system bus for unprivileged service discovery
+      ansible.builtin.systemd_service:
+        name: "{{ vitals_test_system_bus_service }}"
+        state: started
+        daemon_reload: true
+      when: vitals_test_system_bus_service is defined
+
     - name: Create a journal reader without system journal group membership
       ansible.builtin.user:
         name: vitals-journal-reader

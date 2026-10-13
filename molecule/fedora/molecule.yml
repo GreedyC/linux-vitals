@@ -49,8 +49,10 @@ provisioner:
           - "dnf-needs-restarting"
         vitals_expect_time_sync_active: true
         vitals_test_time_sync_service: chronyd.service
+        vitals_test_system_bus_service: dbus-broker.service
         vitals_test_packages:
           - chrony
+          - dbus-broker
         vitals_test_optional_packages:
           - dnf5-plugins
 
