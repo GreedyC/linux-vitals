@@ -228,3 +228,26 @@
       delegate_to: localhost
       register: archived_reports
       failed_when: archived_reports.matched < 1
+
+    - name: Scan as an unprivileged user without journal access
+      ansible.builtin.include_role:
+        name: sameeralam3127.linux_vitals.vitals_scan
+        apply:
+          become: true
+          become_user: vitals-journal-reader
+          become_method: su
+      vars:
+        ansible_pipelining: true
+
+    - name: Assert inaccessible journals are unknown rather than clean
+      ansible.builtin.assert:
+        that:
+          - journal_findings | length == 2
+          - journal_findings | rejectattr('status', 'equalto', 'unknown') | list | length == 0
+          - journal_findings | map(attribute='reason') | select('equalto', '') | list | length == 0
+          - linux_vitals_result.unknown_count | int >= 2
+        fail_msg: "Unprivileged journal findings: {{ journal_findings }}"
+      vars:
+        journal_findings: >-
+          {{ linux_vitals_result.findings
+             | selectattr('id', 'in', ['log_errors', 'kernel_install_failures']) | list }}

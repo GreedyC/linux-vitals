@@ -118,3 +118,12 @@ scan as well as reporting; reporting alone does not refresh health data.
 Cache files for retired hosts can remain on disk. With no Ansible runs using
 the cache, remove their files from the confirmed cache directory. Reports and
 snapshots are separate and do not need to be deleted.
+
+## Unreadable system journals
+
+`log_errors` and `kernel_install_failures` are `unknown` with a reason when
+journal access is denied, `journalctl` fails, or the host does not use systemd.
+An empty successful system-journal read is clean. Without `become` or journal
+group access, expect unknown findings rather than zero errors. Inspect the
+reason before changing journal permissions or the requested time window.
+See [the finding contract](report-guide.md#status-when-a-check-could-not-run).

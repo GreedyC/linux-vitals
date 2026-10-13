@@ -361,3 +361,17 @@ at snapshot time (schema matches a single entry in the JSON report's
 `hosts` array, minus the top-level `comparison` enrichment). These aren't
 pruned automatically -- clean them up per your own retention policy if you
 run many maintenance windows.
+
+## Unreadable system journals
+
+`log_errors` and `kernel_install_failures` report `status: unknown` with a
+`reason` when the system journal cannot be inspected: journal access is denied,
+`journalctl` fails (including an invalid time window), or the host does not use
+systemd. An empty successful system-journal read remains clean. These scans use
+`--system`; a user's partial journal is not evidence of a clean host.
+
+Without `become`, grant the automation user access to the system journal or
+expect unknown findings. Unknown findings contribute to `unknown_count` and are
+excluded from the healthy-host score even when a raised severity threshold lets
+the host pass. Legacy log-count fields count matched lines only; zero is not a
+successful check when the corresponding finding is unknown.

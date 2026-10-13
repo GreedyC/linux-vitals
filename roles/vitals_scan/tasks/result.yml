@@ -13,7 +13,11 @@
       {%- if linux_vitals_ram_status == 'Critical' -%}
       {%- set _ = findings.append({'id': 'ram_critical', 'message': 'RAM usage is critical'}) -%}
       {%- endif -%}
-      {%- if linux_vitals_log_errors | int > 0 -%}
+      {%- if (linux_vitals_journal_checks | default({})).get('log_errors', '') -%}
+      {%- set _ = findings.append({
+        'id': 'log_errors', 'message': 'Recent logs could not be inspected',
+        'status': 'unknown', 'reason': linux_vitals_journal_checks['log_errors']}) -%}
+      {%- elif linux_vitals_log_errors | int > 0 -%}
       {%- set _ = findings.append({'id': 'log_errors', 'message': 'Recent logs contain error or failed entries'}) -%}
       {%- endif -%}
       {%- if linux_vitals_service_status.sssd.state not in ['running', 'active'] -%}
@@ -39,7 +43,11 @@
       {%- if linux_vitals_boot_space_status == 'Low' -%}
       {%- set _ = findings.append({'id': 'boot_space_low', 'message': 'Boot partition free space is low'}) -%}
       {%- endif -%}
-      {%- if linux_vitals_kernel_install_failures | int > 0 -%}
+      {%- if (linux_vitals_journal_checks | default({})).get('kernel_install_failures', '') -%}
+      {%- set _ = findings.append({
+        'id': 'kernel_install_failures', 'message': 'Kernel installation logs could not be inspected',
+        'status': 'unknown', 'reason': linux_vitals_journal_checks['kernel_install_failures']}) -%}
+      {%- elif linux_vitals_kernel_install_failures | int > 0 -%}
       {%- set _ = findings.append({'id': 'kernel_install_failures', 'message': 'Kernel installation or bootloader related failures found in logs'}) -%}
       {%- endif -%}
       {%- if linux_vitals_failed_login_attempts | length > 0 -%}

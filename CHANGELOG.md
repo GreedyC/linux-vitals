@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Fixed
+
+- Unreadable, failed or unavailable system journals now raise `log_errors` and
+  `kernel_install_failures` as `unknown`, with a reason, instead of reporting
+  a clean log ([#118](https://github.com/sameeralam3127/linux-vitals/issues/118)).
+  Reads explicitly select the system journal; partial user-only reads are not clean.
+
 ### Added
 
 - **A finding can say that a check could not run**
@@ -25,9 +32,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   `final_status` is still `Pass` or `Fail`: a third value would be misread by
   any consumer checking `status == "Fail"`. The report's `schema_version`
   moves to `2.1`, additively; nothing existing changed type or meaning, and
-  a 2.x baseline's findings are read as `fail`. No check raises `unknown`
-  yet: [#39](https://github.com/sameeralam3127/linux-vitals/issues/39)
-  (`lastb`) is the first. `tests/test_finding_contract.py` now fails if a
+  a 2.x baseline's findings are read as `fail`. Journal checks now raise
+  `unknown` (#118); [#39](https://github.com/sameeralam3127/linux-vitals/issues/39)
+  (`lastb`) still needs this handling. `tests/test_finding_contract.py` now fails if a
   new scan probe sets `failed_when: false`, so a new check is reviewed
   against the contract before it can reintroduce a false-clean report. See
   [docs/report-guide.md](docs/report-guide.md#status-when-a-check-could-not-run).

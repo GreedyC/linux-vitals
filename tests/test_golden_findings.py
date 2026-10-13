@@ -156,8 +156,8 @@ def _registered(probe_name: str, probe: dict) -> dict:
         "rc": probe["rc"],
         "stdout": stdout,
         "stdout_lines": stdout_lines,
-        "stderr": "",
-        "stderr_lines": [],
+        "stderr": probe.get("stderr", ""),
+        "stderr_lines": probe.get("stderr", "").splitlines(),
     }
 
 
@@ -392,3 +392,21 @@ def test_every_golden_file_has_a_fixture() -> None:
         path.name for path in GOLDEN_DIR.glob("*.json") if path.stem not in _fixture_names()
     )
     assert not orphans, f"golden files with no fixture: {orphans}"
+
+
+@pytest.mark.parametrize("name", ["journal_denied", "journal_invalid_window", "journal_non_systemd", "journal_partial"])
+def test_unreadable_journals_are_unknown(scan_output: dict, name: str) -> None:
+    result = scan_output[name]["result"]
+    findings = {item["id"]: item for item in result["findings"]}
+    for key in ("log_errors", "kernel_install_failures"):
+        assert findings[key]["status"] == "unknown"
+        assert findings[key]["reason"]
+    assert int(result["unknown_count"]) == 2
+
+
+def test_readable_journals_keep_their_original_verdicts(scan_output: dict) -> None:
+    for name in ("ubuntu_healthy", "ubuntu_degraded", "ubuntu_critical"):
+        result = scan_output[name]["result"]
+        assert int(result["unknown_count"]) == 0
+        assert not any(item.get("status") == "unknown" for item in result["findings"])
+    assert scan_output["ubuntu_healthy"]["result"]["final_status"] == "Pass"

@@ -146,7 +146,8 @@ def test_html_and_json_show_an_unknown_check_distinctly(tmp_path: Path) -> None:
 # Scan probes that set `failed_when: false`, recorded when the contract landed
 # (#62). Ignoring a probe's failure is how a check that could not run ends up
 # reading as clean, so each of these is to be audited against the contract --
-# the failed-login probe first (#39). None has an unknown path yet.
+# the failed-login probe first (#39). The two journal probes now handle
+# unknown results (#118); the remaining probes still need their audit.
 #
 # Adding a name here is a review decision, not a way to make this test pass:
 # the probe must tell "ran and found nothing" from "could not run", and raise

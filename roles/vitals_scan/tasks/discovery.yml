@@ -54,10 +54,13 @@
   ansible.builtin.command:
     argv:
       - journalctl
+      - --system
       - --since
       - "{{ linux_vitals_log_window }}"
       - --no-pager
       - --output=short-iso
+  environment:
+    LC_ALL: C
   register: linux_vitals_journalctl
   changed_when: false
   failed_when: false
@@ -642,14 +645,42 @@
   ansible.builtin.command:
     argv:
       - journalctl
+      - --system
       - --since
       - "{{ linux_vitals_audit_log_window }}"
       - --no-pager
       - --output=short-iso
+  environment:
+    LC_ALL: C
   register: linux_vitals_audit_journalctl
   changed_when: false
   failed_when: false
   when: ansible_facts['service_mgr'] == "systemd"
+  tags:
+    - discovery
+    - kernel
+
+- name: Evaluate journal probe availability
+  ansible.builtin.set_fact:
+    linux_vitals_journal_checks: >-
+      {{ linux_vitals_journal_checks | default({}) | combine({item.id: reason | default('', true) | trim}) }}
+  vars:
+    reason: >-
+      {% if ansible_facts['service_mgr'] != 'systemd' %}
+      no systemd journal (service manager: {{ ansible_facts['service_mgr'] }})
+      {% elif item.probe.rc | default(1) | int != 0 %}
+      journalctl exited {{ item.probe.rc | default('unknown') }}:
+      {{ item.probe.stderr | default(item.probe.msg | default('journal unavailable'), true) | trim }}
+      {% elif 'not seeing messages from other users' in (item.probe.stderr | default('')) %}
+      system journal not readable by automation
+      {% endif %}
+  loop:
+    - id: log_errors
+      probe: "{{ linux_vitals_journalctl }}"
+    - id: kernel_install_failures
+      probe: "{{ linux_vitals_audit_journalctl }}"
+  loop_control:
+    label: "{{ item.id }}"
   tags:
     - discovery
     - kernel

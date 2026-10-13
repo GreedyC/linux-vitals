@@ -145,3 +145,26 @@
       ansible.builtin.file:
         path: "{{ flaky_marker }}"
         state: absent
+
+    - name: Create a journal reader without system journal group membership
+      ansible.builtin.user:
+        name: vitals-journal-reader
+        groups: ""
+        append: false
+        create_home: true
+
+    - name: Write a system journal entry for the access regression
+      ansible.builtin.command:
+        argv:
+          - logger
+          - --priority
+          - user.err
+          - linux-vitals journal access regression marker
+      changed_when: true
+
+    - name: Flush the journal entry before the unprivileged scan
+      ansible.builtin.command:
+        argv:
+          - journalctl
+          - --sync
+      changed_when: false

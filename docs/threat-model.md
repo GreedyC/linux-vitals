@@ -72,7 +72,7 @@ What degrades without escalation, rather than failing:
 
 | Probe | Without `become` |
 | --- | --- |
-| `journalctl` | Only the invoking user's journal; error counts under-report |
+| `journalctl` | Explicit system-journal read; denied access reports `unknown`, not a clean zero |
 | `lastb` | Fails; reported as unavailable, **not** as zero failed logins (see [#39](https://github.com/sameeralam3127/linux-vitals/issues/39)) |
 | `needs-restarting`, `zypper needs-rebooting` | Usually fails; falls back to kernel comparison |
 | `getenforce`, `aa-status` | Usually readable unprivileged |
@@ -360,3 +360,12 @@ Do not open a public issue. Use
 [private vulnerability reporting](https://github.com/sameeralam3127/linux-vitals/security/advisories/new),
 or the email address in [SECURITY.md](../.github/SECURITY.md). Response targets are
 documented there.
+
+## Unreadable system journals
+
+`log_errors` and `kernel_install_failures` are `unknown` with a reason when
+journal access is denied, `journalctl` fails, or the host does not use systemd.
+An empty successful system-journal read is clean. Without `become` or journal
+group access, expect unknown findings rather than zero errors. Inspect the
+reason before changing journal permissions or the requested time window.
+See [the finding contract](report-guide.md#status-when-a-check-could-not-run).

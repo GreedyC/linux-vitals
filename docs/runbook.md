@@ -383,3 +383,12 @@ It sometimes is, and knowing where saves you chasing a phantom:
 If a finding is wrong rather than unwelcome, that is a bug --
 [open an issue](https://github.com/sameeralam3127/linux-vitals/issues). If it
 is a security problem, see [SECURITY.md](../.github/SECURITY.md) instead.
+
+## Unreadable system journals
+
+`log_errors` and `kernel_install_failures` are `unknown` with a reason when
+journal access is denied, `journalctl` fails, or the host does not use systemd.
+An empty successful system-journal read is clean. Without `become` or journal
+group access, expect unknown findings rather than zero errors. Inspect the
+reason before changing journal permissions or the requested time window.
+See [the finding contract](report-guide.md#status-when-a-check-could-not-run).
